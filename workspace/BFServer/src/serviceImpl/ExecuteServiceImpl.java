@@ -13,7 +13,7 @@ public class ExecuteServiceImpl implements ExecuteService {
 	 */
 	@Override
 	public String execute(String code, String param) throws RemoteException {
-		String result = null;
+		String result = "";
 		char[] res = new char[1000];//结果字符数组
 		char[] cod = null;//代码字符串转化成字符数组
 		char[] par = null;//参数字符串转化成字符数组
@@ -43,7 +43,12 @@ public class ExecuteServiceImpl implements ExecuteService {
 						result = result + res[res_poi];
 					}
 					else if(c == ','){
-						res[res_poi] = par[par_poi];
+						if(par_poi < par.length){
+							res[res_poi] = par[par_poi];
+							par_poi++;
+						}
+						else
+							res[res_poi] = '\0';
 					}
 					else if(c == '['){
 						if(((int)res[res_poi]) == 0){
