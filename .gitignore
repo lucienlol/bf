@@ -1,8 +1,4 @@
 ﻿# .gitignore
 
-/workspace/BF/.settings/
-/workspace/BF/bin/
-/workspace/BFServer/.settings/
-/workspace/BFServer/bin/
-.classpath
-.project
+#ignore office temp file. eg. ~$adc.doc
+~$*
