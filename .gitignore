@@ -1,0 +1,8 @@
+# .gitignore
+
+/workspace/BF/.settings/
+/workspace/BF/bin/
+/workspace/BFServer/.settings/
+/workspace/BFServer/bin/
+.classpath
+.project
