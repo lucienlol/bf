@@ -15,6 +15,7 @@ public class ClientRunner {
 	public ClientRunner() {
 		linkToServer();
 		initGUI();
+		test();
 	}
 	
 	private void linkToServer() {
@@ -37,8 +38,8 @@ public class ClientRunner {
 	
 	public void test(){
 		try {
-			System.out.println(remoteHelper.getUserService().login("admin", "123456a"));
-			System.out.println(remoteHelper.getIOService().writeFile("2", "admin", "testFile"));
+			System.out.println(remoteHelper.getUserService().login("admin1", "111111"));
+			//System.out.println(remoteHelper.getIOService().writeFile("2", "admin", "testFile"));
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}

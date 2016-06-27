@@ -2,6 +2,7 @@ package ui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dialog;
 import java.awt.FlowLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
@@ -15,6 +16,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 
 import rmi.RemoteHelper;
 
@@ -68,6 +70,8 @@ public class MainFrame extends JFrame {
 		openMenuItem.addActionListener(new MenuItemActionListener());
 		saveMenuItem.addActionListener(new SaveActionListener());
 		exitMenuItem.addActionListener(new MenuItemActionListener());
+		loginMenuItem.addActionListener(new MenuItemActionListener());
+		logoutMenuItem.addActionListener(new MenuItemActionListener());
 		topPanel.add(menuBar);
 		
 		//用户名显示
@@ -120,6 +124,10 @@ public class MainFrame extends JFrame {
 				resultArea.setText("Hello, result");
 			} else if (cmd.equals("New")) {
 				
+			} else if (cmd.equals("log in")) {
+				new loginDialog(this);
+			} else if (cmd.equals("log out")) {
+				
 			}
 		}
 	}
@@ -136,5 +144,18 @@ public class MainFrame extends JFrame {
 			}
 		}
 
+	}
+	
+	class loginDialog extends Dialog {
+		public loginDialog(Dialog owner) {
+			super(owner);
+			// TODO Auto-generated constructor stub
+		}
+		JLabel userLabel = new JLabel("请输入用户名：");
+		JLabel pasLabel = new JLabel("请输入密码：");
+		JTextField userText = new JTextField(50);
+		JTextField pasText = new JTextField(50);
+		
+		
 	}
 }

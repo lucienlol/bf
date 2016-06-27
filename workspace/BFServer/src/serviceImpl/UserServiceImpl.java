@@ -29,7 +29,7 @@ public class UserServiceImpl implements UserService{
 			}
 			str1 = filetext.split("#");
 			for(int i = 0; i < str1.length; i++) {
-				if(str1[i] != null) {
+				if(!str1[i].equals("")) {
 					str2 = str1[i].split(":");
 					map.put(str2[0], str2[1]);
 				}
