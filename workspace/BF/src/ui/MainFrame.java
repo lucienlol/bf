@@ -17,23 +17,34 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
 import rmi.RemoteHelper;
+import service.IOService;
+import service.UserService;
 
 
 public class MainFrame extends JFrame {
+	private RemoteHelper remoteHelper;
+	private IOService ioService;
+	private UserService userService;
 	private JPanel topPanel;
 	private JTextArea textArea;
 	private JPanel bottomPanel;
 	private JTextArea inputArea;
 	private JTextArea resultArea;
 	private JLabel userLabel;
-	private JFrame frame;
-	private JDialog jdialog;
+	private JFrame frame;	
+	private String user;
 
+	public MainFrame(String s) {
+		user = s;
+		new MainFrame();
+	}
+	
 	public MainFrame() {
 		// 创建窗体
 		frame = new JFrame("BF Client");
@@ -131,6 +142,9 @@ public class MainFrame extends JFrame {
 				
 			} else if (cmd.equals("log in")) {
 				new loginDialog(frame);
+				if(user != null){					
+					userLabel.setText("欢迎：" + user);
+				}
 			} else if (cmd.equals("log out")) {
 				
 			}
@@ -148,17 +162,21 @@ public class MainFrame extends JFrame {
 				e1.printStackTrace();
 			}
 		}
-
 	}	
 	
-	class loginDialog {	
+	class loginDialog {
+		private JDialog jdialog;
+		private JLabel userLabel;
+		private JLabel pasLabel;
+		private JTextField userText;
+		private JTextField pasText;
 		
 		public loginDialog(JFrame jframe){
 			jdialog = new JDialog(jframe, "登陆窗口", true);
-			JLabel userLabel = new JLabel("请输入用户名：");
-			JLabel pasLabel = new JLabel("请输入密码：");
-			JTextField userText = new JTextField(30);
-			JTextField pasText = new JTextField(30);
+			userLabel = new JLabel("请输入用户名：");
+			pasLabel = new JLabel("请输入密码：");
+			userText = new JTextField(30);
+			pasText = new JTextField(30);
 			JButton loginButton = new JButton("登入");
 			loginButton.addActionListener(new LoginActionListener());
 			jdialog.setSize(300,170);
@@ -174,7 +192,6 @@ public class MainFrame extends JFrame {
 			jdialog.getContentPane().add(pasLabel);
 			jdialog.getContentPane().add(pasText);
 			jdialog.getContentPane().add(loginButton);
-			
 			jdialog.setVisible(true);
 		}
 		
@@ -182,10 +199,28 @@ public class MainFrame extends JFrame {
 		 * 登入按钮响应事件
 		 */
 		class LoginActionListener implements ActionListener {
-
+			
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
+				String userId = userText.getText();
+				String password = pasText.getText();
 				jdialog.dispose();
+				remoteHelper = RemoteHelper.getInstance();
+				userService = remoteHelper.getUserService();
+				try {
+					Boolean isLogined = userService.login(userId, password);
+					if(isLogined) {
+						JOptionPane.showMessageDialog(frame, "登陆成功", null, JOptionPane.INFORMATION_MESSAGE);
+						user = userId;
+						System.out.println(user);
+					}
+					else {
+						JOptionPane.showMessageDialog(frame, "登陆失败", null, JOptionPane.INFORMATION_MESSAGE);
+					}
+				} catch (RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}			
 		}
 	}
