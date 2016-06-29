@@ -4,6 +4,7 @@ import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 
 import rmi.RemoteHelper;
 import service.IOService;
@@ -37,12 +38,15 @@ public class ClientRunner {
 	}
 	
 	public void test(){
+		String user = "admin";
+		IOService io = remoteHelper.getIOService();
 		try {
-			System.out.println(remoteHelper.getUserService().login("admin1", "111111"));
-			//System.out.println(remoteHelper.getIOService().writeFile("2", "admin", "testFile"));
+			ArrayList ar = io.readFileList(user);
+			System.out.println(ar.size());
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
+		
 	}
 	
 	public static void main(String[] args){

@@ -2,6 +2,7 @@ package ui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Container;
 import java.awt.Dialog;
 import java.awt.FlowLayout;
 import java.awt.Insets;
@@ -9,6 +10,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.rmi.RemoteException;
 
+import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -28,10 +31,12 @@ public class MainFrame extends JFrame {
 	private JTextArea inputArea;
 	private JTextArea resultArea;
 	private JLabel userLabel;
+	private JFrame frame;
+	private JDialog jdialog;
 
 	public MainFrame() {
 		// 创建窗体
-		JFrame frame = new JFrame("BF Client");
+		frame = new JFrame("BF Client");
 		frame.getContentPane().setLayout(new BorderLayout());
 		
 		//面板顶层panel，包括菜单栏和用户名显示
@@ -125,7 +130,7 @@ public class MainFrame extends JFrame {
 			} else if (cmd.equals("New")) {
 				
 			} else if (cmd.equals("log in")) {
-				new loginDialog(this);
+				new loginDialog(frame);
 			} else if (cmd.equals("log out")) {
 				
 			}
@@ -144,18 +149,44 @@ public class MainFrame extends JFrame {
 			}
 		}
 
-	}
+	}	
 	
-	class loginDialog extends Dialog {
-		public loginDialog(Dialog owner) {
-			super(owner);
-			// TODO Auto-generated constructor stub
+	class loginDialog {	
+		
+		public loginDialog(JFrame jframe){
+			jdialog = new JDialog(jframe, "登陆窗口", true);
+			JLabel userLabel = new JLabel("请输入用户名：");
+			JLabel pasLabel = new JLabel("请输入密码：");
+			JTextField userText = new JTextField(30);
+			JTextField pasText = new JTextField(30);
+			JButton loginButton = new JButton("登入");
+			loginButton.addActionListener(new LoginActionListener());
+			jdialog.setSize(300,170);
+			jdialog.setLayout(null);
+			Container cp = jdialog.getContentPane();
+			userLabel.setBounds(20, 10, 100, 30);
+			userText.setBounds(130, 10, 150, 30);
+			pasLabel.setBounds(20, 50, 100, 30);
+			pasText.setBounds(130, 50, 150, 30);
+			loginButton.setBounds(120, 100, 60, 30);
+			jdialog.getContentPane().add(userLabel);
+			jdialog.getContentPane().add(userText);
+			jdialog.getContentPane().add(pasLabel);
+			jdialog.getContentPane().add(pasText);
+			jdialog.getContentPane().add(loginButton);
+			
+			jdialog.setVisible(true);
 		}
-		JLabel userLabel = new JLabel("请输入用户名：");
-		JLabel pasLabel = new JLabel("请输入密码：");
-		JTextField userText = new JTextField(50);
-		JTextField pasText = new JTextField(50);
 		
-		
+		/**
+		 * 登入按钮响应事件
+		 */
+		class LoginActionListener implements ActionListener {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				jdialog.dispose();
+			}			
+		}
 	}
 }

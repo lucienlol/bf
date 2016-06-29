@@ -14,8 +14,7 @@ public class Test {
 	public static void main(String[] args) throws RemoteException {
 		IOService ser = new IOServiceImpl();
 		UserService user = new UserServiceImpl();
-		if(user.login("admin1", "111111"))
-			System.out.println("登陆成功");
+		ser.readFileList("");
 	}
 
 }
