@@ -15,8 +15,7 @@ import serviceImpl.UserServiceImpl;
 
 public class Test {
 	public static void main(String[] args) throws RemoteException {
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd-HH:mm:ss");
-		String time = sdf.format(new Date());
-		System.out.println(time);
+		IOService ioService = new IOServiceImpl();
+		System.out.println(ioService.readFile("admin1", "file1"));
 	}
 }

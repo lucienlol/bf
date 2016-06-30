@@ -22,7 +22,13 @@ public class FileList {
 	}
 	
 	public String getLastVersion() {
+		System.out.println(ar.size());
 		File f = ar.get(ar.size() - 1);
 		return f.getVersion();
+	}
+	
+	public String getLastCode() {
+		File f = ar.get(ar.size() - 1);
+		return f.getCode();
 	}
 }

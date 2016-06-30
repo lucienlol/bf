@@ -76,7 +76,7 @@ public class IOServiceImpl implements IOService{
 				String name = f.getName();
 				String[] s1 = name.split("_");
 				if(s1[0].equals(userId))
-					nameList.add(s1[0]);
+					nameList.add(s1[1]);
 			}			
 		} catch (Exception e) {
 			// TODO: handle exception

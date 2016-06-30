@@ -48,6 +48,7 @@ public class MainFrame extends JFrame {
 	private String fileName;
 	private String version;
 	private String code;
+	private JMenu openMenu;
 	
 	public MainFrame() {
 		// 创建窗体
@@ -60,7 +61,7 @@ public class MainFrame extends JFrame {
 		JMenu runMenu = new JMenu("Run");
 		JMenu versionMenu = new JMenu("Version");
 		JMenu userMenu = new JMenu("Login");
-		JMenu openMenu = new JMenu("Open");
+		openMenu = new JMenu("Open");
 		menuBar.add(fileMenu);
 		menuBar.add(runMenu);
 		menuBar.add(versionMenu);
@@ -157,6 +158,9 @@ public class MainFrame extends JFrame {
 		}
 	}
 
+	/**
+	 * save事件响应
+	 */
 	class SaveActionListener implements ActionListener {
 
 		@Override
@@ -165,7 +169,6 @@ public class MainFrame extends JFrame {
 			if(!((code != null)&&(!(code.equals(newCode))))){
 				try {
 					ioService = RemoteHelper.getInstance().getIOService();
-					System.out.println("newCode" + newCode + " user" + user + " fileName" + fileName);
 					ioService.writeFile(newCode, user, fileName);
 					String file = ioService.readFile(user, fileName);
 					System.out.println(file);
@@ -299,6 +302,39 @@ public class MainFrame extends JFrame {
 	 * 登入后，根据用户名添加open菜单子按钮
 	 */
 	private void openFile() {
+		ioService = RemoteHelper.getInstance().getIOService();
 		
+		try {
+			ArrayList<String> fileArray = ioService.readFileList(user);
+			for(int i = 0; i < fileArray.size(); i++) {
+				JMenuItem item = new JMenuItem(fileArray.get(i));
+				item.addActionListener(new loadFileListener());
+				openMenu.add(item);
+			}
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
+	
+	class loadFileListener implements ActionListener {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			fileName = e.getActionCommand();
+			fileLabel.setText(fileName);
+			ioService = RemoteHelper.getInstance().getIOService();
+			try {				
+				String file = ioService.readFile(user, fileName);
+				FileList fl = new FileList(file);
+				System.out.println(file);
+				version = fl.getLastVersion();
+				verLabel.setText("当前版本：" + version);
+				textArea.setText(fl.getLastCode());
+			} catch (RemoteException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}	
+	}
+
 }
