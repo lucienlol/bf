@@ -32,24 +32,30 @@ import service.UserService;
 
 
 public class MainFrame extends JFrame {
-	private RemoteHelper remoteHelper;
+	//服务
 	private IOService ioService;
 	private UserService userService;
+	
+	//组件
+	private JFrame frame;	
 	private JPanel topPanel;
+	private JLabel userLabel;
+	private JLabel fileLabel;
+	private JLabel verLabel;
 	private JTextArea textArea;
 	private JPanel bottomPanel;
 	private JTextArea inputArea;
 	private JTextArea resultArea;
-	private JLabel userLabel;
-	private JLabel fileLabel;
-	private JLabel verLabel;
-	private JFrame frame;	
+	private JMenu openMenu;
+	private JMenu versionMenu;
+	
+	//成员变量
 	private String user;
 	private String fileName;
 	private String version;
 	private String code;
-	private JMenu openMenu;
-	private JMenu versionMenu;
+	private String input;
+	private String result;
 	
 	public MainFrame() {
 		// 创建窗体
@@ -62,29 +68,30 @@ public class MainFrame extends JFrame {
 		JMenu runMenu = new JMenu("Run");
 		versionMenu = new JMenu("Version");
 		JMenu userMenu = new JMenu("Login");
-		openMenu = new JMenu("Open");
 		menuBar.add(fileMenu);
 		menuBar.add(runMenu);
 		menuBar.add(versionMenu);
 		menuBar.add(userMenu);
 		JMenuItem newMenuItem = new JMenuItem("New");
 		fileMenu.add(newMenuItem);
+		openMenu = new JMenu("Open");
 		fileMenu.add(openMenu);
 		JMenuItem saveMenuItem = new JMenuItem("Save");
 		fileMenu.add(saveMenuItem);
 		JMenuItem exitMenuItem = new JMenuItem("Exit");
 		fileMenu.add(exitMenuItem);
-		JMenuItem runMenuItem = new JMenuItem("Run");
-		runMenu.add(runMenuItem);
-		JMenuItem loginMenuItem = new JMenuItem("log in");
+		JMenuItem executeMenuItem = new JMenuItem("Execute");
+		runMenu.add(executeMenuItem);
+		JMenuItem loginMenuItem = new JMenuItem("Log in");
 		userMenu.add(loginMenuItem);
-		JMenuItem logoutMenuItem = new JMenuItem("log out");
+		JMenuItem logoutMenuItem = new JMenuItem("Log out");
 		userMenu.add(logoutMenuItem);
 		frame.setJMenuBar(menuBar);
 
-		newMenuItem.addActionListener(new MenuItemActionListener());
+		newMenuItem.addActionListener(new NewfileActionListener());
 		saveMenuItem.addActionListener(new SaveActionListener());
 		exitMenuItem.addActionListener(new MenuItemActionListener());
+		executeMenuItem.addActionListener(new ExecuteActionListener());
 		loginMenuItem.addActionListener(new MenuItemActionListener());
 		logoutMenuItem.addActionListener(new MenuItemActionListener());
 		
@@ -142,12 +149,6 @@ public class MainFrame extends JFrame {
 				
 			} else if (cmd.equals("Run")) {
 				resultArea.setText("Hello, result");
-			} else if (cmd.equals("New")) {
-				if(user == null) {
-					JOptionPane.showMessageDialog(frame, "请先登录！", null, JOptionPane.INFORMATION_MESSAGE);
-				} else {
-					new FileDialog();
-				}
 			} else if (cmd.equals("log in")) {
 				new LoginDialog();
 				if(user != null){					
@@ -160,6 +161,65 @@ public class MainFrame extends JFrame {
 	}
 
 	/**
+	 * new事件相应
+	 */
+	class NewfileActionListener implements ActionListener {
+
+		@Override
+		public void actionPerformed(ActionEvent arg0) {
+			if(user == null) {
+				JOptionPane.showMessageDialog(frame, "请先登录！", null, JOptionPane.INFORMATION_MESSAGE);
+			} else {
+				new FileDialog();
+			}
+		}		
+	}
+	
+	/**
+	 * 新建文件对话框
+	 */
+	class FileDialog {
+		private JDialog jDialog;
+		private JLabel jLabel;
+		private JTextField jText;
+		private JButton jButton;
+		
+		FileDialog() {
+			jDialog = new JDialog(frame, null, true);
+			jLabel = new JLabel("新建文件名：");
+			jText = new JTextField(30);
+			jButton = new JButton("新建");
+			jButton.addActionListener(new FileActionListener());
+			jDialog.setSize(300,110);
+			jDialog.setLayout(null);
+			Container cp = jDialog.getContentPane();
+			jLabel.setBounds(20, 10, 100, 25);
+			jText.setBounds(130, 10, 150, 25);
+			jButton.setBounds(120, 40, 60, 30);
+			cp.add(jLabel);
+			cp.add(jText);
+			cp.add(jButton);
+			jDialog.setVisible(true);
+		}
+		
+		/**
+		 * 新建文件按钮响应事件
+		 */
+		class FileActionListener implements ActionListener {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				fileName = jText.getText();
+				jDialog.dispose();
+				fileLabel.setText("文件名：" + fileName);
+				verLabel.setText("");
+				textArea.setText("");
+				code = null;
+			}
+		}
+	}
+	
+	/**
 	 * save事件响应
 	 */
 	class SaveActionListener implements ActionListener {
@@ -167,19 +227,34 @@ public class MainFrame extends JFrame {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			String newCode = textArea.getText();
-			if(!((code != null)&&(!(code.equals(newCode))))){
-				try {
-					ioService = RemoteHelper.getInstance().getIOService();
+			try {
+				ioService = RemoteHelper.getInstance().getIOService();
+				if(code == null) {
 					ioService.writeFile(newCode, user, fileName);
 					String file = ioService.readFile(user, fileName);
-					System.out.println(file);
 					version = new FileList(file).getLastVersion();
 					verLabel.setText("当前版本：" + version);
 					
-				} catch (RemoteException e1) {
-					e1.printStackTrace();
-				}			
-			}
+					JMenuItem fileItem = new JMenuItem(fileName);
+					fileItem.addActionListener(new LoadFileListener());
+					openMenu.add(fileItem);
+					
+					JMenuItem versionItem = new JMenuItem(version);
+					versionItem.addActionListener(new LoadVersionListener());
+					versionMenu.add(versionItem);
+				} else if(!(code.equals(newCode))) {
+					ioService.writeFile(newCode, user, fileName);
+					String file = ioService.readFile(user, fileName);
+					version = new FileList(file).getLastVersion();
+					verLabel.setText("当前版本：" + version);
+					
+					JMenuItem versionItem = new JMenuItem(version);
+					versionItem.addActionListener(new LoadVersionListener());
+					versionMenu.add(versionItem);
+				}
+			} catch (RemoteException e1) {
+				e1.printStackTrace();
+			}			
 		}
 	}	
 	
@@ -228,20 +303,25 @@ public class MainFrame extends JFrame {
 				String userId = userText.getText();
 				String password = pasText.getText();
 				jdialog.dispose();
-				remoteHelper = RemoteHelper.getInstance();
-				userService = remoteHelper.getUserService();
+				userService = RemoteHelper.getInstance().getUserService();
 				try {
 					Boolean isLogined = userService.login(userId, password);
 					if(isLogined) {
 						JOptionPane.showMessageDialog(frame, "登陆成功", null, JOptionPane.INFORMATION_MESSAGE);
+						clean();
 						user = userId;
-						openFile();
+						ioService = RemoteHelper.getInstance().getIOService();
+						ArrayList<String> fileArray = ioService.readFileList(user);
+						for(int i = 0; i < fileArray.size(); i++) {
+							JMenuItem item = new JMenuItem(fileArray.get(i));
+							item.addActionListener(new LoadFileListener());
+							openMenu.add(item);
+						}
 					}
 					else {
 						JOptionPane.showMessageDialog(frame, "登陆失败", null, JOptionPane.INFORMATION_MESSAGE);
 					}
 				} catch (RemoteException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}			
@@ -249,75 +329,8 @@ public class MainFrame extends JFrame {
 	}
 	
 	/**
-	 * 新建文件对话框
+	 * open菜单子文件菜单项响应事件
 	 */
-	class FileDialog {
-		private JDialog jDialog;
-		private JLabel jLabel;
-		private JTextField jText;
-		private JButton jButton;
-		
-		FileDialog() {
-			jDialog = new JDialog(frame, null, true);
-			jLabel = new JLabel("新建文件名：");
-			jText = new JTextField(30);
-			jButton = new JButton("新建");
-			jButton.addActionListener(new FileActionListener());
-			jDialog.setSize(300,110);
-			jDialog.setLayout(null);
-			Container cp = jDialog.getContentPane();
-			jLabel.setBounds(20, 10, 100, 25);
-			jText.setBounds(130, 10, 150, 25);
-			jButton.setBounds(120, 40, 60, 30);
-			cp.add(jLabel);
-			cp.add(jText);
-			cp.add(jButton);
-			jDialog.setVisible(true);
-		}
-		
-		/**
-		 * 新建文件按钮响应事件
-		 */
-		class FileActionListener implements ActionListener {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				fileName = jText.getText();
-				jDialog.dispose();
-				newFile();
-				System.out.println("fileAction");
-			}
-		}
-	}
-	
-	/**
-	 * 新建文件后续响应
-	 */
-	private void newFile(){
-		textArea.setText("new");
-		fileLabel.setText("文件名：" + fileName);
-		System.out.println("new");
-	}
-	
-	/**
-	 * 登入后，根据用户名添加open菜单子按钮
-	 */
-	private void openFile() {
-		ioService = RemoteHelper.getInstance().getIOService();
-		
-		try {
-			ArrayList<String> fileArray = ioService.readFileList(user);
-			for(int i = 0; i < fileArray.size(); i++) {
-				JMenuItem item = new JMenuItem(fileArray.get(i));
-				item.addActionListener(new LoadFileListener());
-				openMenu.add(item);
-			}
-		} catch (RemoteException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-	
 	class LoadFileListener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
@@ -330,23 +343,26 @@ public class MainFrame extends JFrame {
 				System.out.println(file);
 				version = fl.getLastVersion();
 				verLabel.setText("当前版本：" + version);
-				textArea.setText(fl.getLastCode());
+				code = fl.getLastCode();
+				textArea.setText(code);
+				versionMenu.removeAll();
 				ArrayList<String> versions = fl.getVersions();
 				for(int i = 0; i < versions.size(); i++) {
 					JMenuItem item = new JMenuItem(versions.get(i));
-					item.addActionListener(new LoginVersionListener());
+					item.addActionListener(new LoadVersionListener());
 					versionMenu.add(item);
 				}
 			} catch (RemoteException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 			
 		}	
 	}
 
-	class LoginVersionListener implements ActionListener {
-
+	/**
+	 * version菜单子版本菜单项响应事件
+	 */
+	class LoadVersionListener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			version = e.getActionCommand();
@@ -356,11 +372,40 @@ public class MainFrame extends JFrame {
 			try {
 				file = ioService.readFile(user, fileName);
 				FileList fl = new FileList(file);
-				textArea.setText(fl.getCode(version));
+				code = fl.getCode(version);
+				textArea.setText(code);
 			} catch (RemoteException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 		}
+	}
+	
+	class ExecuteActionListener implements ActionListener {
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			
+		}
+	}
+	
+	/**
+	 * 清空函数，用于清空成员变量及菜单
+	 */
+	private void clean(){
+		user = null;
+		fileName = null;
+		version = null;
+		code = null;
+		input = null;
+		result = null;
+		userLabel.setText("");
+		fileLabel.setText("");
+		verLabel.setText("");
+		textArea.setText("");
+		inputArea.setText("");
+		resultArea.setText("");
+		
+		openMenu.removeAll();
+		versionMenu.removeAll();
 	}
 }
