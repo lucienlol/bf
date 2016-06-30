@@ -34,7 +34,7 @@ public class ClientRunner {
 	}
 	
 	private void initGUI() {
-		MainFrame mainFrame = new MainFrame();
+		new MainFrame();
 	}
 	
 	public void test(){
@@ -50,7 +50,8 @@ public class ClientRunner {
 	}
 	
 	public static void main(String[] args){
-		ClientRunner cr = new ClientRunner();
-		//cr.test();
+		new ClientRunner();
+//		ClientRunner cr = new ClientRunner();
+//		cr.test();
 	}
 }

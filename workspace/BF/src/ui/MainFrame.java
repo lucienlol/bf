@@ -27,6 +27,7 @@ import javax.swing.JTextField;
 import file.File;
 import file.FileList;
 import rmi.RemoteHelper;
+import service.ExecuteService;
 import service.IOService;
 import service.UserService;
 
@@ -35,6 +36,7 @@ public class MainFrame extends JFrame {
 	//服务
 	private IOService ioService;
 	private UserService userService;
+	private ExecuteService executeService;
 	
 	//组件
 	private JFrame frame;	
@@ -147,14 +149,12 @@ public class MainFrame extends JFrame {
 			String cmd = e.getActionCommand();
 			if (cmd.equals("Open")) {
 				
-			} else if (cmd.equals("Run")) {
-				resultArea.setText("Hello, result");
-			} else if (cmd.equals("log in")) {
+			} else if (cmd.equals("Log in")) {
 				new LoginDialog();
 				if(user != null){					
 					userLabel.setText("欢迎：" + user);
 				}
-			} else if (cmd.equals("log out")) {
+			} else if (cmd.equals("Log out")) {
 				
 			}
 		}
@@ -380,11 +380,21 @@ public class MainFrame extends JFrame {
 		}
 	}
 	
+	/**
+	 * Execute事件响应
+	 */
 	class ExecuteActionListener implements ActionListener {
-
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			
+			input = inputArea.getText();
+			executeService = RemoteHelper.getInstance().getExecuteService();
+			try {
+				result = executeService.execute(code, input);
+				resultArea.setText(result);
+			} catch (RemoteException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 		}
 	}
 	
