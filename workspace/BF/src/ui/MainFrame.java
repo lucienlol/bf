@@ -147,15 +147,16 @@ public class MainFrame extends JFrame {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			String cmd = e.getActionCommand();
-			if (cmd.equals("Open")) {
-				
+			if (cmd.equals("Exit")) {
+				frame.dispose();
 			} else if (cmd.equals("Log in")) {
 				new LoginDialog();
 				if(user != null){					
 					userLabel.setText("欢迎：" + user);
 				}
 			} else if (cmd.equals("Log out")) {
-				
+				clean();
+				userLabel.setText("请登录！");
 			}
 		}
 	}
