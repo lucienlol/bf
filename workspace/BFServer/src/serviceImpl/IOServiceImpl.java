@@ -5,7 +5,10 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.rmi.RemoteException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 import service.IOService;
 
@@ -13,16 +16,36 @@ public class IOServiceImpl implements IOService{
 	
 	@Override
 	public boolean writeFile(String file, String userId, String fileName) {
+		System.out.println("这里是ioService");
 		File f = new File(userId + "_" + fileName);
-		try {
-			FileWriter fw = new FileWriter(f, false);
-			fw.write(file);
-			fw.flush();
-			fw.close();
-			return true;
-		} catch (IOException e) {
-			e.printStackTrace();
-			return false;
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd-HH:mm:ss");
+		String time = sdf.format(new Date());
+		file = time + " " + file + "#" + "\n";
+		System.out.println(file);
+		if(f.exists()){
+			System.out.println("文件存在");
+			try {
+				FileWriter fw = new FileWriter(f, true);
+				fw.write(file);
+				fw.flush();
+				fw.close();
+				return true;
+			} catch (Exception e) {
+				e.printStackTrace();
+				return false;
+			}
+		} else {
+			System.out.println("文件不存在");
+			try {
+				FileWriter fw = new FileWriter(f, false);
+				fw.write(file);
+				fw.flush();
+				fw.close();
+				return true;
+			} catch (IOException e) {
+				e.printStackTrace();
+				return false;
+			}			
 		}
 	}
 
@@ -60,5 +83,5 @@ public class IOServiceImpl implements IOService{
 		}
 		return nameList;
 	}
-	
+
 }

@@ -1,6 +1,9 @@
 package runner;
 
+import java.io.File;
 import java.rmi.RemoteException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Scanner;
 
 import service.ExecuteService;
@@ -12,9 +15,8 @@ import serviceImpl.UserServiceImpl;
 
 public class Test {
 	public static void main(String[] args) throws RemoteException {
-		IOService ser = new IOServiceImpl();
-		UserService user = new UserServiceImpl();
-		ser.readFileList("");
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd-HH:mm:ss");
+		String time = sdf.format(new Date());
+		System.out.println(time);
 	}
-
 }

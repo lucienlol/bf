@@ -9,6 +9,8 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
+import java.util.Map;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -22,6 +24,8 @@ import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
+import file.File;
+import file.FileList;
 import rmi.RemoteHelper;
 import service.IOService;
 import service.UserService;
@@ -37,24 +41,18 @@ public class MainFrame extends JFrame {
 	private JTextArea inputArea;
 	private JTextArea resultArea;
 	private JLabel userLabel;
+	private JLabel fileLabel;
+	private JLabel verLabel;
 	private JFrame frame;	
 	private String user;
-
-	public MainFrame(String s) {
-		user = s;
-		new MainFrame();
-	}
+	private String fileName;
+	private String version;
+	private String code;
 	
 	public MainFrame() {
 		// 创建窗体
 		frame = new JFrame("BF Client");
 		frame.getContentPane().setLayout(new BorderLayout());
-		
-		//面板顶层panel，包括菜单栏和用户名显示
-		topPanel = new JPanel();
-		FlowLayout topLayout = (FlowLayout) topPanel.getLayout();
-		topLayout.setAlignment(FlowLayout.LEFT);
-		frame.getContentPane().add(topPanel,BorderLayout.NORTH);
 
 		//菜单栏
 		JMenuBar menuBar = new JMenuBar();
@@ -62,14 +60,14 @@ public class MainFrame extends JFrame {
 		JMenu runMenu = new JMenu("Run");
 		JMenu versionMenu = new JMenu("Version");
 		JMenu userMenu = new JMenu("Login");
+		JMenu openMenu = new JMenu("Open");
 		menuBar.add(fileMenu);
 		menuBar.add(runMenu);
 		menuBar.add(versionMenu);
 		menuBar.add(userMenu);
 		JMenuItem newMenuItem = new JMenuItem("New");
 		fileMenu.add(newMenuItem);
-		JMenuItem openMenuItem = new JMenuItem("Open");
-		fileMenu.add(openMenuItem);
+		fileMenu.add(openMenu);
 		JMenuItem saveMenuItem = new JMenuItem("Save");
 		fileMenu.add(saveMenuItem);
 		JMenuItem exitMenuItem = new JMenuItem("Exit");
@@ -80,19 +78,25 @@ public class MainFrame extends JFrame {
 		userMenu.add(loginMenuItem);
 		JMenuItem logoutMenuItem = new JMenuItem("log out");
 		userMenu.add(logoutMenuItem);
-		//frame.setJMenuBar(menuBar);
+		frame.setJMenuBar(menuBar);
 
 		newMenuItem.addActionListener(new MenuItemActionListener());
-		openMenuItem.addActionListener(new MenuItemActionListener());
 		saveMenuItem.addActionListener(new SaveActionListener());
 		exitMenuItem.addActionListener(new MenuItemActionListener());
 		loginMenuItem.addActionListener(new MenuItemActionListener());
 		logoutMenuItem.addActionListener(new MenuItemActionListener());
-		topPanel.add(menuBar);
 		
-		//用户名显示
+		//面板顶层panel，包括用户名、文件名以及文件版本号显示
+		topPanel = new JPanel();
+		FlowLayout topLayout = (FlowLayout) topPanel.getLayout();
+		topLayout.setAlignment(FlowLayout.LEFT);
 		userLabel = new JLabel("请登录！");
-		topPanel.add(userLabel);		
+		fileLabel = new JLabel();
+		verLabel = new JLabel();
+		topPanel.add(userLabel);
+		topPanel.add(fileLabel);
+		topPanel.add(verLabel);
+		frame.getContentPane().add(topPanel,BorderLayout.NORTH);
 
 		//代码输入框
 		textArea = new JTextArea();
@@ -133,15 +137,17 @@ public class MainFrame extends JFrame {
 		public void actionPerformed(ActionEvent e) {
 			String cmd = e.getActionCommand();
 			if (cmd.equals("Open")) {
-				textArea.setText("Open");
-			} else if (cmd.equals("Save")) {
-				textArea.setText("Save");
+				
 			} else if (cmd.equals("Run")) {
 				resultArea.setText("Hello, result");
 			} else if (cmd.equals("New")) {
-				
+				if(user == null) {
+					JOptionPane.showMessageDialog(frame, "请先登录！", null, JOptionPane.INFORMATION_MESSAGE);
+				} else {
+					new fileDialog();
+				}
 			} else if (cmd.equals("log in")) {
-				new loginDialog(frame);
+				new loginDialog();
 				if(user != null){					
 					userLabel.setText("欢迎：" + user);
 				}
@@ -155,29 +161,42 @@ public class MainFrame extends JFrame {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			String code = textArea.getText();
-			try {
-				RemoteHelper.getInstance().getIOService().writeFile(code, "admin", "code");
-			} catch (RemoteException e1) {
-				e1.printStackTrace();
+			String newCode = textArea.getText();
+			if(!((code != null)&&(!(code.equals(newCode))))){
+				try {
+					ioService = RemoteHelper.getInstance().getIOService();
+					System.out.println("newCode" + newCode + " user" + user + " fileName" + fileName);
+					ioService.writeFile(newCode, user, fileName);
+					String file = ioService.readFile(user, fileName);
+					System.out.println(file);
+					version = new FileList(file).getLastVersion();
+					verLabel.setText("当前版本：" + version);
+					
+				} catch (RemoteException e1) {
+					e1.printStackTrace();
+				}			
 			}
 		}
 	}	
 	
+	/**
+	 * 登入对话框
+	 */
 	class loginDialog {
 		private JDialog jdialog;
 		private JLabel userLabel;
 		private JLabel pasLabel;
 		private JTextField userText;
 		private JTextField pasText;
+		private JButton loginButton;
 		
-		public loginDialog(JFrame jframe){
-			jdialog = new JDialog(jframe, "登陆窗口", true);
+		loginDialog(){
+			jdialog = new JDialog(frame, "登陆窗口", true);
 			userLabel = new JLabel("请输入用户名：");
 			pasLabel = new JLabel("请输入密码：");
 			userText = new JTextField(30);
 			pasText = new JTextField(30);
-			JButton loginButton = new JButton("登入");
+			loginButton = new JButton("登入");
 			loginButton.addActionListener(new LoginActionListener());
 			jdialog.setSize(300,170);
 			jdialog.setLayout(null);
@@ -187,11 +206,11 @@ public class MainFrame extends JFrame {
 			pasLabel.setBounds(20, 50, 100, 30);
 			pasText.setBounds(130, 50, 150, 30);
 			loginButton.setBounds(120, 100, 60, 30);
-			jdialog.getContentPane().add(userLabel);
-			jdialog.getContentPane().add(userText);
-			jdialog.getContentPane().add(pasLabel);
-			jdialog.getContentPane().add(pasText);
-			jdialog.getContentPane().add(loginButton);
+			cp.add(userLabel);
+			cp.add(userText);
+			cp.add(pasLabel);
+			cp.add(pasText);
+			cp.add(loginButton);
 			jdialog.setVisible(true);
 		}
 		
@@ -212,7 +231,7 @@ public class MainFrame extends JFrame {
 					if(isLogined) {
 						JOptionPane.showMessageDialog(frame, "登陆成功", null, JOptionPane.INFORMATION_MESSAGE);
 						user = userId;
-						System.out.println(user);
+						openFile();
 					}
 					else {
 						JOptionPane.showMessageDialog(frame, "登陆失败", null, JOptionPane.INFORMATION_MESSAGE);
@@ -223,5 +242,63 @@ public class MainFrame extends JFrame {
 				}
 			}			
 		}
+	}
+	
+	/**
+	 * 新建文件对话框
+	 */
+	class fileDialog {
+		private JDialog jDialog;
+		private JLabel jLabel;
+		private JTextField jText;
+		private JButton jButton;
+		
+		fileDialog() {
+			jDialog = new JDialog(frame, null, true);
+			jLabel = new JLabel("新建文件名：");
+			jText = new JTextField(30);
+			jButton = new JButton("新建");
+			jButton.addActionListener(new fileActionListener());
+			jDialog.setSize(300,110);
+			jDialog.setLayout(null);
+			Container cp = jDialog.getContentPane();
+			jLabel.setBounds(20, 10, 100, 25);
+			jText.setBounds(130, 10, 150, 25);
+			jButton.setBounds(120, 40, 60, 30);
+			cp.add(jLabel);
+			cp.add(jText);
+			cp.add(jButton);
+			jDialog.setVisible(true);
+		}
+		
+		/**
+		 * 新建文件按钮响应事件
+		 */
+		class fileActionListener implements ActionListener {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				fileName = jText.getText();
+				jDialog.dispose();
+				newFile();
+				System.out.println("fileAction");
+			}
+		}
+	}
+	
+	/**
+	 * 新建文件后续响应
+	 */
+	private void newFile(){
+		textArea.setText("new");
+		fileLabel.setText("文件名：" + fileName);
+		System.out.println("new");
+	}
+	
+	/**
+	 * 登入后，根据用户名添加open菜单子按钮
+	 */
+	private void openFile() {
+		
 	}
 }
