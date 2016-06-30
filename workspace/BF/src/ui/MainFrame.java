@@ -49,6 +49,7 @@ public class MainFrame extends JFrame {
 	private String version;
 	private String code;
 	private JMenu openMenu;
+	private JMenu versionMenu;
 	
 	public MainFrame() {
 		// 创建窗体
@@ -59,7 +60,7 @@ public class MainFrame extends JFrame {
 		JMenuBar menuBar = new JMenuBar();
 		JMenu fileMenu = new JMenu("File");
 		JMenu runMenu = new JMenu("Run");
-		JMenu versionMenu = new JMenu("Version");
+		versionMenu = new JMenu("Version");
 		JMenu userMenu = new JMenu("Login");
 		openMenu = new JMenu("Open");
 		menuBar.add(fileMenu);
@@ -145,10 +146,10 @@ public class MainFrame extends JFrame {
 				if(user == null) {
 					JOptionPane.showMessageDialog(frame, "请先登录！", null, JOptionPane.INFORMATION_MESSAGE);
 				} else {
-					new fileDialog();
+					new FileDialog();
 				}
 			} else if (cmd.equals("log in")) {
-				new loginDialog();
+				new LoginDialog();
 				if(user != null){					
 					userLabel.setText("欢迎：" + user);
 				}
@@ -185,7 +186,7 @@ public class MainFrame extends JFrame {
 	/**
 	 * 登入对话框
 	 */
-	class loginDialog {
+	class LoginDialog {
 		private JDialog jdialog;
 		private JLabel userLabel;
 		private JLabel pasLabel;
@@ -193,7 +194,7 @@ public class MainFrame extends JFrame {
 		private JTextField pasText;
 		private JButton loginButton;
 		
-		loginDialog(){
+		LoginDialog(){
 			jdialog = new JDialog(frame, "登陆窗口", true);
 			userLabel = new JLabel("请输入用户名：");
 			pasLabel = new JLabel("请输入密码：");
@@ -250,18 +251,18 @@ public class MainFrame extends JFrame {
 	/**
 	 * 新建文件对话框
 	 */
-	class fileDialog {
+	class FileDialog {
 		private JDialog jDialog;
 		private JLabel jLabel;
 		private JTextField jText;
 		private JButton jButton;
 		
-		fileDialog() {
+		FileDialog() {
 			jDialog = new JDialog(frame, null, true);
 			jLabel = new JLabel("新建文件名：");
 			jText = new JTextField(30);
 			jButton = new JButton("新建");
-			jButton.addActionListener(new fileActionListener());
+			jButton.addActionListener(new FileActionListener());
 			jDialog.setSize(300,110);
 			jDialog.setLayout(null);
 			Container cp = jDialog.getContentPane();
@@ -277,7 +278,7 @@ public class MainFrame extends JFrame {
 		/**
 		 * 新建文件按钮响应事件
 		 */
-		class fileActionListener implements ActionListener {
+		class FileActionListener implements ActionListener {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -308,7 +309,7 @@ public class MainFrame extends JFrame {
 			ArrayList<String> fileArray = ioService.readFileList(user);
 			for(int i = 0; i < fileArray.size(); i++) {
 				JMenuItem item = new JMenuItem(fileArray.get(i));
-				item.addActionListener(new loadFileListener());
+				item.addActionListener(new LoadFileListener());
 				openMenu.add(item);
 			}
 		} catch (RemoteException e) {
@@ -317,11 +318,11 @@ public class MainFrame extends JFrame {
 		}
 	}
 	
-	class loadFileListener implements ActionListener {
+	class LoadFileListener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			fileName = e.getActionCommand();
-			fileLabel.setText(fileName);
+			fileLabel.setText("文件名：" + fileName);
 			ioService = RemoteHelper.getInstance().getIOService();
 			try {				
 				String file = ioService.readFile(user, fileName);
@@ -330,11 +331,36 @@ public class MainFrame extends JFrame {
 				version = fl.getLastVersion();
 				verLabel.setText("当前版本：" + version);
 				textArea.setText(fl.getLastCode());
+				ArrayList<String> versions = fl.getVersions();
+				for(int i = 0; i < versions.size(); i++) {
+					JMenuItem item = new JMenuItem(versions.get(i));
+					item.addActionListener(new LoginVersionListener());
+					versionMenu.add(item);
+				}
 			} catch (RemoteException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
+			
 		}	
 	}
 
+	class LoginVersionListener implements ActionListener {
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			version = e.getActionCommand();
+			verLabel.setText("当前版本：" + version);
+			String file;
+			ioService = RemoteHelper.getInstance().getIOService();
+			try {
+				file = ioService.readFile(user, fileName);
+				FileList fl = new FileList(file);
+				textArea.setText(fl.getCode(version));
+			} catch (RemoteException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
+	}
 }
