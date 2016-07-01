@@ -42,7 +42,6 @@ public class ClientRunner {
 		IOService io = remoteHelper.getIOService();
 		try {
 			ArrayList<String> ar = io.readFileList(user);
-			System.out.println(ar.size());
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}

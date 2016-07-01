@@ -56,8 +56,6 @@ public class MainFrame extends JFrame {
 	private String fileName;
 	private String version;
 	private String code;
-	private String input;
-	private String result;
 	
 	public MainFrame() {
 		// 创建窗体
@@ -110,7 +108,7 @@ public class MainFrame extends JFrame {
 		frame.getContentPane().add(topPanel,BorderLayout.NORTH);
 
 		//代码输入框
-		textArea = new JTextArea();
+		textArea = new JTextArea(15,20);
 		textArea.setMargin(new Insets(10, 10, 10, 10));
 		textArea.setBackground(Color.LIGHT_GRAY);
 		frame.getContentPane().add(textArea, BorderLayout.CENTER);
@@ -140,10 +138,10 @@ public class MainFrame extends JFrame {
 		frame.setVisible(true);
 	}
 
+	/**
+	 * 子菜单响应事件
+	 */
 	class MenuItemActionListener implements ActionListener {
-		/**
-		 * 子菜单响应事件
-		 */
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			String cmd = e.getActionCommand();
@@ -158,6 +156,77 @@ public class MainFrame extends JFrame {
 				clean();
 				userLabel.setText("请登录！");
 			}
+		}
+	}
+	
+	/**
+	 * 登入对话框
+	 */
+	class LoginDialog {
+		private JDialog jdialog;
+		private JLabel userLabel;
+		private JLabel pasLabel;
+		private JTextField userText;
+		private JTextField pasText;
+		private JButton loginButton;
+		
+		LoginDialog(){
+			jdialog = new JDialog(frame, "登陆窗口", true);
+			jdialog.setLocation(400, 300);
+			userLabel = new JLabel("请输入用户名：");
+			pasLabel = new JLabel("请输入密码：");
+			userText = new JTextField(30);
+			pasText = new JTextField(30);
+			loginButton = new JButton("登入");
+			loginButton.addActionListener(new LoginActionListener());
+			jdialog.setSize(300,170);
+			jdialog.setLayout(null);
+			Container cp = jdialog.getContentPane();
+			userLabel.setBounds(20, 10, 100, 25);
+			userText.setBounds(125, 10, 150, 25);
+			pasLabel.setBounds(20, 40, 100, 25);
+			pasText.setBounds(125, 40, 150, 25);
+			loginButton.setBounds(120, 80, 60, 30);
+			cp.add(userLabel);
+			cp.add(userText);
+			cp.add(pasLabel);
+			cp.add(pasText);
+			cp.add(loginButton);
+			jdialog.setVisible(true);
+		}
+		
+		/**
+		 * 登入按钮响应事件
+		 */
+		class LoginActionListener implements ActionListener {
+			
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				String userId = userText.getText();
+				String password = pasText.getText();
+				jdialog.dispose();
+				userService = RemoteHelper.getInstance().getUserService();
+				try {
+					Boolean isLogined = userService.login(userId, password);
+					if(isLogined) {
+						JOptionPane.showMessageDialog(frame, "登陆成功", null, JOptionPane.INFORMATION_MESSAGE);
+						clean();
+						user = userId;
+						ioService = RemoteHelper.getInstance().getIOService();
+						ArrayList<String> fileArray = ioService.readFileList(user);
+						for(int i = 0; i < fileArray.size(); i++) {
+							JMenuItem item = new JMenuItem(fileArray.get(i));
+							item.addActionListener(new LoadFileListener());
+							openMenu.add(item);
+						}
+					}
+					else {
+						JOptionPane.showMessageDialog(frame, "登陆失败", null, JOptionPane.INFORMATION_MESSAGE);
+					}
+				} catch (RemoteException e) {
+					e.printStackTrace();
+				}
+			}			
 		}
 	}
 
@@ -187,11 +256,12 @@ public class MainFrame extends JFrame {
 		
 		FileDialog() {
 			jDialog = new JDialog(frame, null, true);
+			jDialog.setLocation(400, 300);
 			jLabel = new JLabel("新建文件名：");
 			jText = new JTextField(30);
 			jButton = new JButton("新建");
 			jButton.addActionListener(new FileActionListener());
-			jDialog.setSize(300,110);
+			jDialog.setSize(300,120);
 			jDialog.setLayout(null);
 			Container cp = jDialog.getContentPane();
 			jLabel.setBounds(20, 10, 100, 25);
@@ -213,9 +283,11 @@ public class MainFrame extends JFrame {
 				fileName = jText.getText();
 				jDialog.dispose();
 				fileLabel.setText("文件名：" + fileName);
+				code = null;
 				verLabel.setText("");
 				textArea.setText("");
-				code = null;
+				inputArea.setText("");
+				resultArea.setText("");
 			}
 		}
 	}
@@ -260,76 +332,6 @@ public class MainFrame extends JFrame {
 	}	
 	
 	/**
-	 * 登入对话框
-	 */
-	class LoginDialog {
-		private JDialog jdialog;
-		private JLabel userLabel;
-		private JLabel pasLabel;
-		private JTextField userText;
-		private JTextField pasText;
-		private JButton loginButton;
-		
-		LoginDialog(){
-			jdialog = new JDialog(frame, "登陆窗口", true);
-			userLabel = new JLabel("请输入用户名：");
-			pasLabel = new JLabel("请输入密码：");
-			userText = new JTextField(30);
-			pasText = new JTextField(30);
-			loginButton = new JButton("登入");
-			loginButton.addActionListener(new LoginActionListener());
-			jdialog.setSize(300,170);
-			jdialog.setLayout(null);
-			Container cp = jdialog.getContentPane();
-			userLabel.setBounds(20, 10, 100, 30);
-			userText.setBounds(130, 10, 150, 30);
-			pasLabel.setBounds(20, 50, 100, 30);
-			pasText.setBounds(130, 50, 150, 30);
-			loginButton.setBounds(120, 100, 60, 30);
-			cp.add(userLabel);
-			cp.add(userText);
-			cp.add(pasLabel);
-			cp.add(pasText);
-			cp.add(loginButton);
-			jdialog.setVisible(true);
-		}
-		
-		/**
-		 * 登入按钮响应事件
-		 */
-		class LoginActionListener implements ActionListener {
-			
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				String userId = userText.getText();
-				String password = pasText.getText();
-				jdialog.dispose();
-				userService = RemoteHelper.getInstance().getUserService();
-				try {
-					Boolean isLogined = userService.login(userId, password);
-					if(isLogined) {
-						JOptionPane.showMessageDialog(frame, "登陆成功", null, JOptionPane.INFORMATION_MESSAGE);
-						clean();
-						user = userId;
-						ioService = RemoteHelper.getInstance().getIOService();
-						ArrayList<String> fileArray = ioService.readFileList(user);
-						for(int i = 0; i < fileArray.size(); i++) {
-							JMenuItem item = new JMenuItem(fileArray.get(i));
-							item.addActionListener(new LoadFileListener());
-							openMenu.add(item);
-						}
-					}
-					else {
-						JOptionPane.showMessageDialog(frame, "登陆失败", null, JOptionPane.INFORMATION_MESSAGE);
-					}
-				} catch (RemoteException e) {
-					e.printStackTrace();
-				}
-			}			
-		}
-	}
-	
-	/**
 	 * open菜单子文件菜单项响应事件
 	 */
 	class LoadFileListener implements ActionListener {
@@ -341,7 +343,6 @@ public class MainFrame extends JFrame {
 			try {				
 				String file = ioService.readFile(user, fileName);
 				FileList fl = new FileList(file);
-				System.out.println(file);
 				version = fl.getLastVersion();
 				verLabel.setText("当前版本：" + version);
 				code = fl.getLastCode();
@@ -356,10 +357,26 @@ public class MainFrame extends JFrame {
 			} catch (RemoteException e1) {
 				e1.printStackTrace();
 			}
-			
 		}	
 	}
 
+	/**
+	 * Execute事件响应
+	 */
+	class ExecuteActionListener implements ActionListener {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			executeService = RemoteHelper.getInstance().getExecuteService();
+			try {
+				String result = executeService.execute(textArea.getText(), inputArea.getText());
+				resultArea.setText(result);
+			} catch (RemoteException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
+	}
+	
 	/**
 	 * version菜单子版本菜单项响应事件
 	 */
@@ -380,25 +397,7 @@ public class MainFrame extends JFrame {
 			}
 		}
 	}
-	
-	/**
-	 * Execute事件响应
-	 */
-	class ExecuteActionListener implements ActionListener {
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			input = inputArea.getText();
-			executeService = RemoteHelper.getInstance().getExecuteService();
-			try {
-				result = executeService.execute(code, input);
-				resultArea.setText(result);
-			} catch (RemoteException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-		}
-	}
-	
+
 	/**
 	 * 清空函数，用于清空成员变量及菜单
 	 */
@@ -407,8 +406,6 @@ public class MainFrame extends JFrame {
 		fileName = null;
 		version = null;
 		code = null;
-		input = null;
-		result = null;
 		userLabel.setText("");
 		fileLabel.setText("");
 		verLabel.setText("");

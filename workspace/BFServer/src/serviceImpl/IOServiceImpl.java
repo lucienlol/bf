@@ -16,14 +16,11 @@ public class IOServiceImpl implements IOService{
 	
 	@Override
 	public boolean writeFile(String file, String userId, String fileName) {
-		System.out.println("这里是ioService");
 		File f = new File(userId + "_" + fileName);
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd-HH:mm:ss");
 		String time = sdf.format(new Date());
 		file = time + " " + file + "#" + "\n";
-		System.out.println(file);
 		if(f.exists()){
-			System.out.println("文件存在");
 			try {
 				FileWriter fw = new FileWriter(f, true);
 				fw.write(file);
@@ -35,7 +32,6 @@ public class IOServiceImpl implements IOService{
 				return false;
 			}
 		} else {
-			System.out.println("文件不存在");
 			try {
 				FileWriter fw = new FileWriter(f, false);
 				fw.write(file);
