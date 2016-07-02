@@ -284,6 +284,7 @@ public class MainFrame extends JFrame {
 				jDialog.dispose();
 				fileLabel.setText("文件名：" + fileName);
 				code = null;
+				versionMenu.removeAll();
 				verLabel.setText("");
 				textArea.setText("");
 				inputArea.setText("");

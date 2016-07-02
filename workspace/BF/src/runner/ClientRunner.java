@@ -16,7 +16,7 @@ public class ClientRunner {
 	public ClientRunner() {
 		linkToServer();
 		initGUI();
-		test();
+//		test();
 	}
 	
 	private void linkToServer() {
